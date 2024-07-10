@@ -74,7 +74,7 @@ void PIXEL(int X, int Y, int R=255, int G=255, int B=200) {
 void GENERATE_PARTICLES(int AMOUNT=500, int GEN_RANGE=10) {
     for (int P=0; P<AMOUNT; P++) {
         float X=-GEN_RANGE+float(rand()%(GEN_RANGE*20))/10;
-        float Y=5-GEN_RANGE+float(rand()%(GEN_RANGE*20))/10;
+        float Y=-GEN_RANGE+float(rand()%(GEN_RANGE*20))/10;
         float U=float(rand()%2==1?MASS:-MASS);
         float B=INDIVIDUAL_BETA?float(rand()%2==1?MASS:-MASS):U;
         PARTICLES.push_back({X, Y, 0, 0, B, U});
