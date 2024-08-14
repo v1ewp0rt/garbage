@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
-#include "LIB/SDL2/SDL.h"
-#include "LIB/SDL2/SDL_image.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "LIB/PerlinNoise.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "LIB/stb_image.h"
