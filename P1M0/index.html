@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body { 
+                background-color: #101116; 
+                background-image: url('bg.png'); 
+            }
+            .TEXT {
+                position: absolute;
+                font-size: 40px;
+                font-family: monospace;
+                color:#ee0239;
+                user-select: none;
+            }
+            .BANNER {
+                position: absolute;
+                transform: translate(300px, 20px);
+            }
+            .JOYSTICK {
+                width: 200px; 
+                height: 200px; 
+                background-color: #000000;
+                border: 2px solid #04ffff;
+                border-radius: 50%; 
+                position: relative;
+                user-select: none;
+            }
+            .HANDLE {
+                width: 75px;
+                height: 75px; 
+                border-radius: 50%; 
+                position: absolute;
+                user-select: none;
+            }
+            .BUTTON {
+                position: absolute;
+                width: 80px;
+                height: 80px;
+                border-radius: 10%;
+                border: 0px solid #00f9a9;
+                background-color: #00000000;
+                color: #00f9a9;
+                font-size: 40px;
+                user-select: none;
+            }
+            .SWITCH {
+                position: absolute;
+                width: 46px;
+                height: 46px;
+                border: 0px solid;
+                background-color: #00000000;
+                background-image: url("off.png");
+                user-select: none;
+            }
+        </style>
+        <script>
+            function PULSE(ID, TIMEOUT) { 
+                if (TIMEOUT) {
+                    if (!SENDED) {
+                        var XHTTP = new XMLHttpRequest();
+                        XHTTP.open("POST", "http://192.168.4.1/PULSE", true);
+                        XHTTP.setRequestHeader("Content-Type", "text/plain");
+                        XHTTP.send(ID);
+                        console.log(ID);
+                        SENDED = true;
+                        setTimeout(function() { SENDED = false;}, 200);
+                    }
+                }
+                else {
+                    var XHTTP = new XMLHttpRequest();
+                    XHTTP.open("POST", "http://192.168.4.1/PULSE", true);
+                    XHTTP.setRequestHeader("Content-Type", "text/plain");
+                    XHTTP.send(ID);
+                    console.log(ID);
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <img class="BANNER" src="banner.png"/>
+        <img src="LG.png" style="position: absolute; transform: translate(570px, 140px);"/>
+        <img src="head.png" style="position: absolute; transform: translate(792px, 80px); width: 95px; height: 80px;"/>
+        
+        <button class="BUTTON" style="transform: translate(800px, 10px) rotate(-90deg);" ontouchstart="event.preventDefault();PULSE('EYEUP', false)" ontouchend="PULSE('EYEN', false)"><img src="arrow.png" draggable="false" style="width: 80px; height: 80px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(800px, 150px) rotate(90deg);" ontouchstart="event.preventDefault();PULSE('EYEDN', false)" ontouchend="PULSE('EYEN', false)"><img src="arrow.png" draggable="false" style="width: 80px; height: 80px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(870px, 80px);" ontouchstart="event.preventDefault();PULSE('HEADR', false)" ontouchend="PULSE('HEADN', false)"><img src="arrow.png" draggable="false" style="width: 80px; height: 80px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(730px, 80px) rotate(-180deg);" ontouchstart="event.preventDefault();PULSE('HEADL', false)" ontouchend="PULSE('HEADN', false)"><img src="arrow.png" draggable="false" style="width: 80px; height: 80px;" ></img></button>
+
+        <h1 class="TEXT" style="font-size: 20px; transform: translate(400px, 140px)">SONIDOS</h1>
+        <button class="BUTTON" style="transform: translate(350px, 180px);" ontouchstart="event.preventDefault();PULSE('V1', false)"><img src="voice.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(430px, 180px);" ontouchstart="event.preventDefault();PULSE('V2', false)"><img src="voice.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+ 
+        <h1 class="TEXT" style="font-size: 20px; transform: translate(400px, 250px)">GESTOS</h1>
+        <button class="BUTTON" style="transform: translate(550px, 300px);" ontouchstart="event.preventDefault();PULSE('E5', false)"><img src="emote.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(470px, 300px);" ontouchstart="event.preventDefault();PULSE('E4', false)"><img src="emote.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(390px, 300px);" ontouchstart="event.preventDefault();PULSE('E3', false)"><img src="emote.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(310px, 300px);" ontouchstart="event.preventDefault();PULSE('E2', false)"><img src="emote.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(230px, 300px);" ontouchstart="event.preventDefault();PULSE('E1', false)"><img src="emote.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        
+        <h1 class="TEXT" style="font-size: 20px; transform: translate(805px, 250px)">ATAQUE</h1>
+        <button class="BUTTON" style="transform: translate(710px, 300px);" ontouchstart="event.preventDefault();PULSE('ATK1', false)"><img src="attack.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(790px, 300px);" ontouchstart="event.preventDefault();PULSE('ATK2', false)"><img src="attack.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+        <button class="BUTTON" style="transform: translate(870px, 300px);" ontouchstart="event.preventDefault();PULSE('ATK3', false)"><img src="attack.png" draggable="false" style="width: 50px; height: 50px;" ></img></button>
+
+        <div id="JOYSTICK_ID" class="JOYSTICK" style="transform: translate(50px, 10px)">
+            <img src="handle.png" draggable="false" id="HANDLE_ID" class="HANDLE" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+        </div>
+        <script>
+            const JOYSTICK = document.getElementById('JOYSTICK_ID');
+            const HANDLE = document.getElementById('HANDLE_ID');
+            var SENDED = false;
+            let JOYSTICK_ON = false;
+
+            JOYSTICK.addEventListener('touchstart', JOYSTICK_START, { passive: false });
+            document.addEventListener('touchmove', JOYSTICK_MOVE, { passive: false });
+            document.addEventListener('touchend', JOYSTICK_END, { passive: false });
+            
+            function MAP(S, IMN, IMX, OMN, OMX) { return ((S-IMN)*((OMX-OMN)/(IMX-IMN)))+OMN; }
+
+            function JOYSTICK_START(EVENT) { EVENT.preventDefault(); JOYSTICK_ON = true; }
+
+            function JOYSTICK_MOVE(EVENT) {
+                EVENT.preventDefault();
+                if (JOYSTICK_ON) {
+                    const RECT = JOYSTICK.getBoundingClientRect();
+                    const CENTERX = RECT.x+RECT.width/2;
+                    const CENTERY = RECT.y+RECT.height/2;
+                    const MOUSEX = EVENT.touches[0].clientX;
+                    const MOUSEY = EVENT.touches[0].clientY;
+                    const DELTAX = MOUSEX-CENTERX;
+                    const DELTAY = MOUSEY-CENTERY;
+                    const DISTANCE = Math.sqrt(DELTAX*DELTAX+DELTAY*DELTAY);
+                    const MAX_DISTANCE = RECT.width/2;
+                    var SPEED = MAP(DISTANCE, 0, 150, 0, 255);
+
+                    if (SPEED>255) { SPEED=255; }
+                    if (DELTAX<=-25 && DELTAY<=-25) { PULSE("FL&"+parseInt(SPEED), true); }
+                    if (DELTAX>-25 && DELTAX<25 && DELTAY<=-25) { PULSE("F&"+parseInt(SPEED), true); }
+                    if (DELTAX>=25 && DELTAY<=-25) { PULSE("FR&"+parseInt(SPEED), true); }
+                    if (DELTAX<=-25 && DELTAY<25 && DELTAY>-25) { PULSE("L&"+parseInt(SPEED), true); }
+                    if (DELTAX>=25 && DELTAY<25 && DELTAY>-25) { PULSE("R&"+parseInt(SPEED), true); }
+                    if (DELTAX<=-25 && DELTAY>=25) { PULSE("BL&"+parseInt(SPEED), true); }
+                    if (DELTAX>-25 && DELTAX<25 && DELTAY>=25) { PULSE("B&"+parseInt(SPEED), true); }
+                    if (DELTAX>=25 && DELTAY>=25) { PULSE("BR&"+parseInt(SPEED), true); }
+
+                    if (DISTANCE <= MAX_DISTANCE) { HANDLE.style.transform = `translate(${DELTAX-HANDLE.offsetWidth/2}px, ${DELTAY-HANDLE.offsetHeight/2}px)`; } 
+                    else {
+                        const ANGLE = Math.atan2(DELTAY, DELTAX);
+                        const NEWX = Math.cos(ANGLE)*MAX_DISTANCE;
+                        const NEWY = Math.sin(ANGLE)*MAX_DISTANCE;
+                        HANDLE.style.transform = `translate(${NEWX-HANDLE.offsetWidth/2}px, ${NEWY-HANDLE.offsetHeight/2}px)`;
+                    }
+                }
+            }
+            
+            function JOYSTICK_END(EVENT) { 
+                if (JOYSTICK_ON) {
+                    EVENT.preventDefault(); 
+                    JOYSTICK_ON = false; 
+                    HANDLE.style.transform = `translate(-50%, -50%)`; 
+                    PULSE("N", false);
+                } 
+            }
+        </script>
+    </body>
+</html>
