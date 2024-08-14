@@ -1,0 +1,307 @@
+#include "engine.h"
+
+using namespace std;
+
+struct PLAYER { int X=10000, Y=-50, ANIMATION, START_FRAME, END_FRAME, SPEED; SDL_RendererFlip FLIP; float XVEL, YVEL; bool INGROUND; };
+
+PLAYER MAIN_PLAYER;
+
+SDL_Texture* PLAYER_SPRITESHEET;
+SDL_Texture* SKY_TEXTURE;
+SDL_Texture* BG_BUILDINGS;
+SDL_Texture* BG_STRUCTURES;
+SDL_Texture* SUN_TEXTURE;
+SDL_Texture* MOON_TEXTURE;
+SDL_Texture* UI_MM_BACKGROUND;
+SDL_Texture* UI_FONTS;
+
+bool PLAYING = true;
+float GRAVITY = 0.3;
+int PARALLAX_DEPTH = 5;
+int TIMER = 9000;
+float GAME_TIME = 0;
+SDL_Color LIGHTNING = {255, 255, 255, 255};
+
+void SET_TIME(float HOUR) {
+  int X=VPORT_W/2;
+  int SUN_Y, MOON_Y;
+  
+  if (HOUR >= 6 && HOUR <= 8) { LIGHTNING.r=MAPRANGE(6, 8, 10, 255, HOUR); LIGHTNING.g=MAPRANGE(6, 8, 20, 125, HOUR); LIGHTNING.b=MAPRANGE(6, 8, 30, 85, HOUR); }
+  if (HOUR > 8 && HOUR < 12) { LIGHTNING.r=MAPRANGE(8, 12, 255, 245, HOUR); LIGHTNING.g=MAPRANGE(8, 12, 125, 205, HOUR); LIGHTNING.b=MAPRANGE(8, 12, 85, 215, HOUR); }
+  if (HOUR >= 12 && HOUR < 18) { LIGHTNING.r=MAPRANGE(12, 18, 245, 255, HOUR); LIGHTNING.g=MAPRANGE(12, 18, 205, 125, HOUR); LIGHTNING.b=MAPRANGE(12, 18, 215, 85, HOUR); }
+  if (HOUR >= 18 && HOUR <= 20) { LIGHTNING.r=MAPRANGE(18, 20, 255, 10, HOUR); LIGHTNING.g=MAPRANGE(18, 20, 125, 20, HOUR); LIGHTNING.b=MAPRANGE(18, 20, 85, 30, HOUR); }
+  
+  SUN_Y=MAPRANGE(23, 12, VPORT_H+50, 0, HOUR);
+  MOON_Y=MAPRANGE(0, 9, 0, VPORT_H+30, HOUR);
+
+  if (HOUR>=12 && HOUR<=21) { 
+    SDL_SetTextureBlendMode(SUN_TEXTURE, SDL_BLENDMODE_BLEND);
+    IMAGE(SUN_TEXTURE, {0, 0, 100, 100}, X-50, SUN_Y-100, 1); 
+  }
+
+  if (HOUR>=0 && HOUR<=7) {
+    SDL_SetTextureBlendMode(MOON_TEXTURE, SDL_BLENDMODE_BLEND);
+    IMAGE(MOON_TEXTURE, {0, 0, 60, 60}, X-30, MOON_Y-60, 1);
+  }
+}
+
+void WRITE(int X, int Y, string STRING) {
+  string FONTS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.";
+  transform(STRING.begin(), STRING.end(), STRING.begin(), ::toupper);
+  for (int AL=0; AL<STRING.length(); AL++) {
+    for (int BL=0; BL<FONTS.length(); BL++) {
+      if (STRING[AL]==FONTS[BL]) { IMAGE(UI_FONTS, {BL*7, 0, 7, 6}, X+(AL*7), Y); } 
+    }
+  }
+}
+
+void MENU() { IMAGE(UI_MM_BACKGROUND, {0, 0, 400, 300}, 0, 0); }
+
+void START() { 
+  RUNNING=true; 
+
+  PLAYER_SPRITESHEET = LOAD_TEXTURE("RES/playersheet.png");
+  SKY_TEXTURE = LOAD_TEXTURE("RES/sky.png");
+  BG_BUILDINGS = LOAD_TEXTURE("RES/buildings.png");
+  BG_STRUCTURES = LOAD_TEXTURE("RES/structures.png");
+  SUN_TEXTURE = LOAD_TEXTURE("RES/sun.png");
+  MOON_TEXTURE = LOAD_TEXTURE("RES/moon.png");
+  UI_MM_BACKGROUND = LOAD_TEXTURE("RES/ui_mm_bg.png");
+  UI_FONTS = LOAD_TEXTURE("RES/fonts.png");
+
+  MAIN_PLAYER.ANIMATION=0; 
+  MAIN_PLAYER.START_FRAME=0;
+  MAIN_PLAYER.END_FRAME=0;
+  MAIN_PLAYER.SPEED=1000;
+}
+
+void CONTROL(int COMMAND, int DIRECTION, bool RUNNING) {
+  if (MAIN_PLAYER.INGROUND) {
+    if (COMMAND==0) {
+      if (DIRECTION==1 && RUNNING) { MAIN_PLAYER.XVEL=-3; }
+      if (DIRECTION==1 && !RUNNING) { MAIN_PLAYER.XVEL=-1; }
+      if (DIRECTION==3 && RUNNING) { MAIN_PLAYER.XVEL=3; }
+      if (DIRECTION==3 && !RUNNING) { MAIN_PLAYER.XVEL=1; }
+      MAIN_PLAYER.Y--; MAIN_PLAYER.YVEL=-5;
+    }
+    if (COMMAND==1) {
+      if (RUNNING) { 
+        MAIN_PLAYER.X-=2;
+        MAIN_PLAYER.ANIMATION=2; 
+        MAIN_PLAYER.START_FRAME=0;
+        MAIN_PLAYER.END_FRAME=9;
+        MAIN_PLAYER.SPEED=80;
+      }
+      else {
+        MAIN_PLAYER.X--;
+        MAIN_PLAYER.ANIMATION=1; 
+        MAIN_PLAYER.START_FRAME=0;
+        MAIN_PLAYER.END_FRAME=7;
+        MAIN_PLAYER.SPEED=100;
+      }
+      MAIN_PLAYER.FLIP=SDL_FLIP_HORIZONTAL;
+    }
+    if (COMMAND==3) {
+      if (RUNNING) { 
+        MAIN_PLAYER.X+=2;
+        MAIN_PLAYER.ANIMATION=2; 
+        MAIN_PLAYER.START_FRAME=0;
+        MAIN_PLAYER.END_FRAME=9;
+        MAIN_PLAYER.SPEED=80;
+      }
+      else {
+        MAIN_PLAYER.X++;
+        MAIN_PLAYER.ANIMATION=1; 
+        MAIN_PLAYER.START_FRAME=0;
+        MAIN_PLAYER.END_FRAME=7;
+        MAIN_PLAYER.SPEED=100;
+      }
+      MAIN_PLAYER.FLIP=SDL_FLIP_NONE;
+    }
+  }
+}
+
+void UPDATE_PLAYER() {
+  string PLAYER_EXTERNAL_COLLIDER;
+  string PLAYER_INTERNAL_COLLIDER;
+  int VELOCITY;
+
+  if (RUNNING=true) { VELOCITY=2; }
+  else { VELOCITY=1; }
+  
+  SDL_SetTextureColorMod(PLAYER_SPRITESHEET, LIGHTNING.r, LIGHTNING.g, LIGHTNING.b);
+  SPRITE(PLAYER_SPRITESHEET, {MAIN_PLAYER.X-CAMERA.x-4, MAIN_PLAYER.Y-CAMERA.y, 16, 16}, MAIN_PLAYER.START_FRAME, MAIN_PLAYER.END_FRAME, MAIN_PLAYER.ANIMATION, MAIN_PLAYER.SPEED, 1, 0, MAIN_PLAYER.FLIP);
+  
+  PLAYER_EXTERNAL_COLLIDER = CHECK_COLLISION({(VPORT_W/2)-1, VPORT_H/2, 9, 16}, {2, 5});
+  PLAYER_INTERNAL_COLLIDER = CHECK_COLLISION({(VPORT_W/2), (VPORT_H/2)+1, 7, 14}, {2, 6});
+
+  if (PLAYER_EXTERNAL_COLLIDER[2]=='1') { MAIN_PLAYER.INGROUND=true; MAIN_PLAYER.YVEL=0; MAIN_PLAYER.XVEL=0; }
+  else { MAIN_PLAYER.INGROUND=false; MAIN_PLAYER.YVEL += GRAVITY; }  
+  if (PLAYER_INTERNAL_COLLIDER[2]=='1') { MAIN_PLAYER.YVEL--; }
+  if (PLAYER_EXTERNAL_COLLIDER[3]=='1') { MAIN_PLAYER.X-=VELOCITY; MAIN_PLAYER.XVEL=0; }
+  if (PLAYER_EXTERNAL_COLLIDER[1]=='1') { MAIN_PLAYER.X+=VELOCITY; MAIN_PLAYER.XVEL=0; }
+  if (PLAYER_EXTERNAL_COLLIDER[0]=='1') { MAIN_PLAYER.YVEL=0; MAIN_PLAYER.Y++; }
+
+  if (!MAIN_PLAYER.INGROUND) { 
+    MAIN_PLAYER.X+=MAIN_PLAYER.XVEL; 
+    if (abs(MAIN_PLAYER.YVEL)>0.5) {
+      if (abs(MAIN_PLAYER.XVEL)>0) {
+        if (MAIN_PLAYER.YVEL<-1) { MAIN_PLAYER.ANIMATION=3; MAIN_PLAYER.START_FRAME=0; MAIN_PLAYER.END_FRAME=0; }
+        if (MAIN_PLAYER.YVEL>-1 && MAIN_PLAYER.YVEL<1) { MAIN_PLAYER.ANIMATION=3; MAIN_PLAYER.START_FRAME=1; MAIN_PLAYER.END_FRAME=1; }
+        if (MAIN_PLAYER.YVEL>1) { MAIN_PLAYER.ANIMATION=3; MAIN_PLAYER.START_FRAME=2; MAIN_PLAYER.END_FRAME=2; }
+      }
+      else {
+        if (MAIN_PLAYER.YVEL<-1) { MAIN_PLAYER.ANIMATION=3; MAIN_PLAYER.START_FRAME=3; MAIN_PLAYER.END_FRAME=3; }
+        if (MAIN_PLAYER.YVEL>-1 && MAIN_PLAYER.YVEL<1) { MAIN_PLAYER.ANIMATION=3; MAIN_PLAYER.START_FRAME=4; MAIN_PLAYER.END_FRAME=4; }
+        if (MAIN_PLAYER.YVEL>1) { MAIN_PLAYER.ANIMATION=3; MAIN_PLAYER.START_FRAME=5; MAIN_PLAYER.END_FRAME=5; }
+      }
+    }
+  }
+  MAIN_PLAYER.Y+=MAIN_PLAYER.YVEL;
+}
+
+void CHECK_EVENTS() {
+  SDL_Event EVENT;
+  bool RUNNING;
+  const Uint8* KEY = SDL_GetKeyboardState(NULL);
+  SDL_GetMouseState(&MOUSEX, &MOUSEY);  
+
+  while (SDL_PollEvent(&EVENT)) {
+    if (EVENT.type == SDL_QUIT) { 
+      RUNNING = false; 
+      SDL_DestroyTexture(PLAYER_SPRITESHEET);
+      exit(0); 
+    }
+  }
+
+  if (KEY[SDL_SCANCODE_LSHIFT]) { RUNNING=true; }
+  else { RUNNING=false; }
+
+  if (KEY[SDL_SCANCODE_A]) { CONTROL(1, 0, RUNNING); }
+  if (KEY[SDL_SCANCODE_D]) { CONTROL(3, 0, RUNNING); }
+  
+  if (KEY[SDL_SCANCODE_SPACE]) { 
+    if (KEY[SDL_SCANCODE_A]) { CONTROL(0, 1, RUNNING); }
+    else if (KEY[SDL_SCANCODE_D]) { CONTROL(0, 3, RUNNING); }
+    else { CONTROL(0, 0, RUNNING);  }
+  }
+
+  if (!KEY[SDL_SCANCODE_A] && !KEY[SDL_SCANCODE_D] && MAIN_PLAYER.INGROUND) { 
+    MAIN_PLAYER.ANIMATION=0; 
+    MAIN_PLAYER.START_FRAME=0;
+    MAIN_PLAYER.END_FRAME=0;
+    MAIN_PLAYER.SPEED=1000;
+  }
+
+  if (KEY[SDL_SCANCODE_UP]) { CAMERA.y--; }
+  if (KEY[SDL_SCANCODE_LEFT]) { CAMERA.x--; }
+  if (KEY[SDL_SCANCODE_DOWN]) { CAMERA.y++; }
+  if (KEY[SDL_SCANCODE_RIGHT]) { CAMERA.x++; }
+}
+
+void DRAW_WORLD() {
+  for (int X=0; X<=VPORT_W; X++) {
+    int NOISE = ((((PERLIN.octave1D_01((CAMERA.x+X) * 0.025, 4))*10))-CAMERA.y);
+    for (int Y=NOISE+1; Y<=-CAMERA.y+30; Y++) { 
+      if ((X>=0 && X<VPORT_W) && (Y>=0 && Y<VPORT_H)) { 
+        PIXEL(X, Y, {10*(float(LIGHTNING.r)/255), 10*(float(LIGHTNING.g)/255), 10*(float(LIGHTNING.b)/255), 255}); VIEWPORT[X][Y]=1; 
+      }
+    }
+  }
+  RECTANGLE({0, -CAMERA.y+30, VPORT_W, CAMERA.y+VPORT_H}, {10*(float(LIGHTNING.r)/255), 10*(float(LIGHTNING.g)/255), 10*(float(LIGHTNING.b)/255), 255});
+}
+
+void DRAW_BACKGROUND() {
+  for (int D=PARALLAX_DEPTH; D>1; D--) {
+    float TONE = (D*10);
+    int Y = 140-((CAMERA.y+100)/D);
+
+    RECTANGLE({0, Y, VPORT_W, 70}, {TONE*(float(LIGHTNING.r)/255), TONE*(float(LIGHTNING.g)/255), TONE*(float(LIGHTNING.b)/255), 255});
+    SDL_SetTextureColorMod(BG_BUILDINGS, TONE*(float(LIGHTNING.r)/255), TONE*(float(LIGHTNING.g)/255), TONE*(float(LIGHTNING.b)/255));
+    SDL_SetTextureColorMod(BG_STRUCTURES, TONE*(float(LIGHTNING.r)/255), TONE*(float(LIGHTNING.g)/255), TONE*(float(LIGHTNING.b)/255));
+    for (int X=-VPORT_W; X<VPORT_W; X++) {
+      int SPAWN = (X+(CAMERA.x/D));
+      if (SPAWN%150 == 0) {
+        int RANDOM_SPAWN = GET_RANDOM_AT((X+(CAMERA.x/D)), 0)*100;
+        if (RANDOM_SPAWN/10==0) { IMAGE(BG_BUILDINGS, {0, 0, 191, 463}, X, Y-(463/D), float(1.0f/(D-1))); }
+        if (RANDOM_SPAWN/10==1) { IMAGE(BG_BUILDINGS, {191, 0, 146, 442}, X, Y-(442/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==2) { IMAGE(BG_BUILDINGS, {337, 0, 448, 560}, X, Y-(560/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==3) { IMAGE(BG_BUILDINGS, {785, 0, 280, 560}, X, Y-(560/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==4) { IMAGE(BG_BUILDINGS, {1065, 0, 214, 606}, X, Y-(606/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==5) { IMAGE(BG_BUILDINGS, {1279, 0, 214, 524}, X, Y-(524/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==6) { IMAGE(BG_BUILDINGS, {1493, 0, 117, 298}, X, Y-(298/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==7) { IMAGE(BG_BUILDINGS, {1610, 0, 244, 616}, X, Y-(616/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==8) { IMAGE(BG_BUILDINGS, {1854, 0, 304, 524}, X, Y-(524/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==9) { IMAGE(BG_BUILDINGS, {2158, 0, 210, 510}, X, Y-(510/D), float(1.0f/D)); }
+      }
+      if (SPAWN%100 == 0) {
+        int RANDOM_SPAWN = GET_RANDOM_AT((X+(CAMERA.x/D)), 0)*100;
+        if (RANDOM_SPAWN/10==0) { IMAGE(BG_STRUCTURES, {0, 0, 594, 130}, X, Y-(130/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==1) { IMAGE(BG_STRUCTURES, {594, 0, 23, 78}, X, Y-(78/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==2) { IMAGE(BG_STRUCTURES, {617, 0, 42, 119}, X, Y-(119/D), float(1.0f/D)); }
+        if (RANDOM_SPAWN/10==3) { IMAGE(BG_STRUCTURES, {659, 0, 154, 86}, X, Y-(86/D), float(1.0f/D)); }
+      }
+    }
+  }
+}
+
+void UPDATE() {
+  if (PLAYING) {
+    SDL_SetTextureColorMod(SKY_TEXTURE, LIGHTNING.r, LIGHTNING.g, LIGHTNING.b);
+    IMAGE(SKY_TEXTURE, {0, 0, 400, 300}, 0, 0);
+    SET_TIME(GAME_TIME);
+    CLEAR_VIEWPORT();
+    DRAW_BACKGROUND();
+    DRAW_WORLD();
+    UPDATE_PLAYER();
+    
+    CAMERA.x=MAIN_PLAYER.X-(VPORT_W/2);
+    CAMERA.y=MAIN_PLAYER.Y-(VPORT_H/2);
+
+    if (LIGHTNING.r<0) { LIGHTNING.r=0; } if (LIGHTNING.g<0) { LIGHTNING.g=0; } if (LIGHTNING.b<0) { LIGHTNING.b=0; }
+    if (LIGHTNING.r>255) { LIGHTNING.r=255; } if (LIGHTNING.g>255) { LIGHTNING.g=255; } if (LIGHTNING.b>255) { LIGHTNING.b=255; }
+    
+    GAME_TIME=float(TIMER)/1000;
+    SDL_SetTextureColorMod(UI_FONTS, 255, 255, 255);
+    if (GAME_TIME>1 && GAME_TIME<13) { WRITE(VPORT_W-40, 0, to_string(int(GAME_TIME))+"AM"); }
+    if (GAME_TIME>13 && GAME_TIME<24) { WRITE(VPORT_W-40, 0, to_string(int(GAME_TIME-12))+"PM"); }
+    if (GAME_TIME>0 && GAME_TIME<1) { WRITE(VPORT_W-40, 0, "12PM"); }
+    if (GAME_TIME >=24) { GAME_TIME = 0; TIMER = 0; }
+    TIMER+=10;
+
+    CURRENT_FPS = (FRAME_TIME > 0) ? 1000.0f / FRAME_TIME : 0.0f;
+    SDL_SetTextureColorMod(UI_FONTS, 0, 255, 0);
+    WRITE(0, 0, to_string(CURRENT_FPS)+" FPS");
+
+    CHECK_EVENTS();
+  }
+
+  else { MENU(); }
+}
+
+int main() {
+  SDL_Init(SDL_INIT_EVERYTHING);
+  MAIN_WINDOW("HOLY TRINITY");
+  START();
+  FRAME_BUFFER = SDL_CreateTexture(RENDERER, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, VPORT_W, VPORT_H);
+  while (RUNNING) {
+    FRAME_START = SDL_GetTicks();
+    SDL_SetRenderTarget(RENDERER, FRAME_BUFFER);
+    SDL_RenderClear(RENDERER);
+    UPDATE();
+    SDL_SetRenderTarget(RENDERER, NULL);
+    SDL_RenderClear(RENDERER);
+    IMAGE(FRAME_BUFFER, SRECT, 0, 0, 2);
+    SDL_RenderPresent(RENDERER);
+    FRAME_TIME = SDL_GetTicks() - FRAME_START;
+    if (FRAME_DELAY > FRAME_TIME) { SDL_Delay(FRAME_DELAY - FRAME_TIME); }
+  }
+  SDL_DestroyTexture(PLAYER_SPRITESHEET);
+  SDL_DestroyTexture(SKY_TEXTURE);
+  SDL_DestroyTexture(FRAME_BUFFER);
+  SDL_DestroyTexture(BG_BUILDINGS);
+  SDL_DestroyTexture(BG_STRUCTURES);
+  SDL_DestroyTexture(SUN_TEXTURE);
+  SDL_DestroyTexture(MOON_TEXTURE);
+  SDL_DestroyTexture(UI_FONTS);
+}
