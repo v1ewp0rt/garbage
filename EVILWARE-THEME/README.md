@@ -4,6 +4,8 @@
 
 To install, run ./INSTALL.sh (noroot) and follow instructions
 
+*ONLY TESTED IN ARCH LINUX AND DEBIAN 12 (X11)*
+
 If you want to change something after the installation:
 
 AwesomeWM config (key bindings, default apps, window layouts)
