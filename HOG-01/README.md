@@ -1,6 +1,7 @@
 *HAND OF GOD módulo 1*
 
 *Utilidades:*
+
   Cruz laser rotativa [0°, 180°]
   
   Linterna
@@ -8,6 +9,7 @@
   Reloj
   
 *Sensores:*
+
   Módulo RTC DS1302
   
   2 x Pulsador 12mmx12mm
@@ -15,6 +17,7 @@
   Potenciómetro
   
 *Actuadores:*
+
   LED Blanco 5v
   
   Módulo laser 1230 5mW
@@ -24,6 +27,7 @@
   Pantalla OLED 1.3p 128x64
   
 *Adicional:*
+
   ESP32
   
   2 x Batería Li-ion 3.7v 1500mAh (Paralelo)
