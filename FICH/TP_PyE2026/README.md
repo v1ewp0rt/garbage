@@ -1,8 +1,10 @@
 
 # LA PREDICTIBILIDAD DE NUESTRAS CONTRASEÑAS
 
-Trabajo Práctico Final\n
+Trabajo Práctico Final
+
 Probabilidad y Estadística 2026
+
 Lucas Gutierrez - IIA
 
 Este código fue escrito manualmente por el autor y se encarga de las siguientes operaciones:
