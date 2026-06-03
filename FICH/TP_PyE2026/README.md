@@ -20,7 +20,11 @@ Este código fue escrito manualmente por el autor y se encarga de las siguientes
   - Generación de archivo CSV de correlaciones para las tablas de regresión
   - Generación de dataset CSV completo
   - Demostración interactiva de la IPCP para contraseñas ingresadas manualmente
-  
+
+# DESCARGA
+
+``` https://downgit.github.io/#/home?url=https://github.com/v1ewp0rt/garbage/tree/main/FICH/TP_PyE2026 ```
+
 # COMPILACIÓN Y USO
 
 Se necesita la carpeta dataset con los 230 archivos de texto en el directorio del script
