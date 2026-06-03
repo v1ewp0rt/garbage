@@ -5,4 +5,4 @@ Lucas Gutierrez - IIA
 
 # COMPILACIÓN
 
->> g++ main.cpp -o main
+``` g++ main.cpp -o main ```
