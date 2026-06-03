@@ -1,7 +1,7 @@
 
 # LA PREDICTIBILIDAD DE NUESTRAS CONTRASEÑAS
 
-Trabajo Práctico Final
+Trabajo Práctico Final\n
 Probabilidad y Estadística 2026
 Lucas Gutierrez - IIA
 
