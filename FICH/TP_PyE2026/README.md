@@ -21,6 +21,10 @@ Este código fue escrito manualmente por el autor y se encarga de las siguientes
   - Generación de dataset CSV completo
   - Demostración interactiva de la IPCP para contraseñas ingresadas manualmente
   
-# COMPILACIÓN
+# COMPILACIÓN Y USO
 
-``` g++ main.cpp -o main ```
+Se necesita la carpeta dataset con los 230 archivos de texto en el directorio del script
+``` 
+g++ main.cpp -o main
+./main
+```
