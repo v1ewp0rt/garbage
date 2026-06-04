@@ -77,16 +77,24 @@ float get_acsi(string s_key, array<array<float, charCount>, charCount>* s_arr) {
     } score /= (key.size()-1);
     return score; 
 }
-// Escribe el archivo para el mapa de calor
+// Escribe archivos para el mapa de calor y probabilidades secuenciales
 void write_heatmap_file(array<array<float, charCount>, charCount>* d_arr) {
-    cout << "matriz-secuencias.dat" << endl;
-    ofstream destination("matriz-secuencias.dat");
+    cout << "mapa-de-calor.dat" << endl;
+    ofstream destination("mapa-de-calor.dat");
     for (uint8_t j=0; j<charCount; j++) {
         for (uint8_t i=0; i<charCount; i++) { 
             float value = (*d_arr)[i][j];
             destination << to_string(log10(value+1e-9f)) << " ";
         } destination << endl; 
-    }
+    } destination.close();
+
+    cout << "matriz-secuencias.csv" << endl;
+    destination.open("matriz-secuencias.dat");
+    for (uint8_t j=0; j<charCount; j++) {
+        for (uint8_t i=0; i<charCount; i++) { 
+            destination << to_string((*d_arr)[i][j]) << " ";
+        } destination << endl; 
+    } destination.close();
 }
 // Escribe todos los demás archivos (Diagramas, tablas, etc...)
 void write_descriptive_files(vector<string>* s_entry, array<array<float, charCount>, charCount>* s_arr) {
@@ -94,7 +102,7 @@ void write_descriptive_files(vector<string>* s_entry, array<array<float, charCou
     string lower = "qwertyuiopasdfghjklñzxcvbnm";
     string number = "1234567890";
     string symbol = "!@-_#.,$%&?/\\=({[]})+*^;:<>~`\"\'";
-    array<string, 6> variable = {"longitud", "minus", "mayus", "num", "sim", "ipcp"};
+    array<string, 6> variable = {"longitud", "mayus", "minus", "num", "sim", "ipcp"};
     array<vector<uint32_t>, 6> freq; // freq[característica][cantidad] = numero de contraseñas
     vector<array<uint64_t, 5>> value(totalValues); //value[numero de entrada][característica] = cantidad
     vector<pair<string, double>> correlation;
@@ -133,7 +141,7 @@ void write_descriptive_files(vector<string>* s_entry, array<array<float, charCou
         for (uint8_t i=0; i<5; i++) { destination << (int)value[j][i] << ","; }
         destination << acsi[j] << endl;
     } destination.close();
-
+    
     for (uint8_t j=0; j<5; j++) {
         string path = variable[j]+"-frecuencia.dat";
         cout << path << endl;
